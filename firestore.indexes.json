@@ -1,0 +1,33 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "violations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "plateNumber",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "violations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
