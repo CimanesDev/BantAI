@@ -11,7 +11,9 @@ import { collection, query, where, onSnapshot, doc, updateDoc, orderBy } from 'f
 import { useToast } from "@/hooks/use-toast";
 import { Document, Page, pdfjs } from 'react-pdf';
 import jsPDF from 'jspdf';
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
+
+// Initialize PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 const getStatusBadge = (status: string) => {
   const config = {
@@ -63,6 +65,8 @@ export const AdminDashboard = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedAppeal, setSelectedAppeal] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [pageNumber, setPageNumber] = useState(1);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -125,6 +129,10 @@ export const AdminDashboard = () => {
     }
   };
 
+  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+    setNumPages(numPages);
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -136,6 +144,8 @@ export const AdminDashboard = () => {
   if (selectedAppeal) {
     // Use appealLetter if available, otherwise try analysisResult or a fallback
     const pdfContent = selectedAppeal.appealLetter || selectedAppeal.appealReason || (selectedAppeal.analysisResult && JSON.stringify(selectedAppeal.analysisResult, null, 2)) || 'No letter available.';
+    const pdfData = getAppealPdfArrayBuffer(pdfContent);
+
     return (
       <div className="space-y-6 min-h-screen bg-background p-4">
         <Button variant="outline" onClick={() => setSelectedAppeal(null)} className="mb-4">Back to Appeals</Button>
@@ -144,7 +154,7 @@ export const AdminDashboard = () => {
             <CardTitle className="text-primary">Appeal Details</CardTitle>
             <CardDescription className="text-primary">Review all details and take action</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p className="font-semibold text-primary">Ticket Number:</p>
@@ -172,7 +182,7 @@ export const AdminDashboard = () => {
             <div className="bg-primary/5 p-3 rounded mb-3">
               <p className="text-sm text-primary"><strong>Appeal Reason:</strong> {selectedAppeal.appealReason}</p>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex gap-2 mb-4">
               <Button size="sm" onClick={() => handleStatusChange(selectedAppeal.id, 'approved')} className="bg-green-600 hover:bg-green-700">Approve</Button>
               <Button size="sm" variant="destructive" onClick={() => handleStatusChange(selectedAppeal.id, 'denied')}>Deny</Button>
               <Button size="sm" variant="outline" onClick={() => handleStatusChange(selectedAppeal.id, 'under_review')}>Under Review</Button>
@@ -181,9 +191,41 @@ export const AdminDashboard = () => {
               <div className="mt-6">
                 <h4 className="font-semibold mb-2 text-primary">Appeal Letter PDF Preview</h4>
                 <div className="border rounded bg-white p-2">
-                  <Document file={{ data: getAppealPdfArrayBuffer(pdfContent) }}>
-                    <Page pageNumber={1} />
+                  <Document
+                    file={{ data: pdfData }}
+                    onLoadSuccess={onDocumentLoadSuccess}
+                    className="flex justify-center"
+                  >
+                    <Page
+                      pageNumber={pageNumber}
+                      width={Math.min(window.innerWidth * 0.8, 600)}
+                      renderTextLayer={false}
+                      renderAnnotationLayer={false}
+                    />
                   </Document>
+                  {numPages && numPages > 1 && (
+                    <div className="flex justify-center gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setPageNumber(prev => Math.max(prev - 1, 1))}
+                        disabled={pageNumber <= 1}
+                      >
+                        Previous
+                      </Button>
+                      <span className="py-2">
+                        Page {pageNumber} of {numPages}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setPageNumber(prev => Math.min(prev + 1, numPages))}
+                        disabled={pageNumber >= numPages}
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -301,7 +343,7 @@ export const AdminDashboard = () => {
                   <div>👤 {appeal.userName}</div>
                   <div>🚗 {appeal.plateNumber}</div>
                   <div>📍 {appeal.location}</div>
-                  <div>📅 {new Date(appeal.submittedDate).toLocaleDateString('en-PH')}</div>
+                  <div>📅 {new Date(appeal.submittedDate.seconds * 1000).toLocaleDateString('en-PH')}</div>
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded mb-3">
