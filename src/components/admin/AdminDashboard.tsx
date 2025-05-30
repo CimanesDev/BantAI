@@ -4,16 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, FileText, CheckCircle, AlertCircle, Search, Filter } from "lucide-react";
+import { Users, FileText, CheckCircle, AlertCircle, Search, Filter, Info, Shield, Camera, Car, MapPin, Calendar, User, Ticket, ArrowLeft } from "lucide-react";
 import { motion } from 'framer-motion';
 import { db } from '@/firebase';
 import { collection, query, where, onSnapshot, doc, updateDoc, orderBy } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
-import { Document, Page, pdfjs } from 'react-pdf';
-import jsPDF from 'jspdf';
-
-// Initialize PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const getStatusBadge = (status: string) => {
   const config = {
@@ -49,15 +45,15 @@ const getAIVerdictBadge = (verdict: string) => {
   );
 };
 
-// Helper to generate PDF ArrayBuffer from appealReason
-function getAppealPdfArrayBuffer(appealReason: string) {
-  const doc = new jsPDF();
-  doc.setFont('helvetica');
-  doc.setFontSize(12);
-  const lines = doc.splitTextToSize(appealReason, 180);
-  doc.text(lines, 15, 20);
-  return doc.output('arraybuffer');
-}
+const DetailItem = ({ icon: Icon, label, value }: { icon: any, label: string, value: string }) => (
+  <div className="flex items-start space-x-3">
+    <Icon className="h-5 w-5 text-primary/60 mt-0.5" />
+    <div>
+      <p className="text-sm font-medium text-primary/80">{label}</p>
+      <p className="text-sm text-primary">{value}</p>
+    </div>
+  </div>
+);
 
 export const AdminDashboard = () => {
   const [appeals, setAppeals] = useState<any[]>([]);
@@ -65,9 +61,8 @@ export const AdminDashboard = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedAppeal, setSelectedAppeal] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [numPages, setNumPages] = useState<number | null>(null);
-  const [pageNumber, setPageNumber] = useState(1);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const appealsRef = collection(db, 'appeals');
@@ -129,10 +124,6 @@ export const AdminDashboard = () => {
     }
   };
 
-  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
-    setNumPages(numPages);
-  }
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -142,95 +133,158 @@ export const AdminDashboard = () => {
   }
 
   if (selectedAppeal) {
-    // Use appealLetter if available, otherwise try analysisResult or a fallback
-    const pdfContent = selectedAppeal.appealLetter || selectedAppeal.appealReason || (selectedAppeal.analysisResult && JSON.stringify(selectedAppeal.analysisResult, null, 2)) || 'No letter available.';
-    const pdfData = getAppealPdfArrayBuffer(pdfContent);
+    const analysisResult = selectedAppeal.analysisResult || {};
+    const issues = analysisResult.issues || [];
+    const confidence = analysisResult.confidence || 0;
+    const imageQuality = analysisResult.imageQuality || 'Unknown';
+    const plateNumberMatch = analysisResult.plateNumberMatch || false;
 
     return (
       <div className="space-y-6 min-h-screen bg-background p-4">
-        <Button variant="outline" onClick={() => setSelectedAppeal(null)} className="mb-4">Back to Appeals</Button>
-        <Card className="border-primary/10 bg-card/80 backdrop-blur-lg shadow-xl">
-          <CardHeader>
-            <CardTitle className="text-primary">Appeal Details</CardTitle>
-            <CardDescription className="text-primary">Review all details and take action</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="font-semibold text-primary">Ticket Number:</p>
-                <p>{selectedAppeal.ticketNumber}</p>
-                <p className="font-semibold mt-2 text-primary">Violation Type:</p>
-                <p>{selectedAppeal.violationType}</p>
-                <p className="font-semibold mt-2 text-primary">Plate Number:</p>
-                <p>{selectedAppeal.plateNumber}</p>
-                <p className="font-semibold mt-2 text-primary">Location:</p>
-                <p>{selectedAppeal.location}</p>
-                <p className="font-semibold mt-2 text-primary">Date Submitted:</p>
-                <p>{selectedAppeal.submittedDate ? new Date(selectedAppeal.submittedDate.seconds * 1000).toLocaleString('en-PH') : 'N/A'}</p>
-              </div>
-              <div>
-                <p className="font-semibold text-primary">User Name:</p>
-                <p>{selectedAppeal.userName}</p>
-                <p className="font-semibold mt-2 text-primary">User ID:</p>
-                <p>{selectedAppeal.userId}</p>
-                <p className="font-semibold mt-2 text-primary">AI Verdict:</p>
-                <p>{selectedAppeal.aiVerdict}</p>
-                <p className="font-semibold mt-2 text-primary">Status:</p>
-                {getStatusBadge(selectedAppeal.status)}
-              </div>
-            </div>
-            <div className="bg-primary/5 p-3 rounded mb-3">
-              <p className="text-sm text-primary"><strong>Appeal Reason:</strong> {selectedAppeal.appealReason}</p>
-            </div>
-            <div className="flex gap-2 mb-4">
-              <Button size="sm" onClick={() => handleStatusChange(selectedAppeal.id, 'approved')} className="bg-green-600 hover:bg-green-700">Approve</Button>
-              <Button size="sm" variant="destructive" onClick={() => handleStatusChange(selectedAppeal.id, 'denied')}>Deny</Button>
-              <Button size="sm" variant="outline" onClick={() => handleStatusChange(selectedAppeal.id, 'under_review')}>Under Review</Button>
-            </div>
-            {pdfContent && (
-              <div className="mt-6">
-                <h4 className="font-semibold mb-2 text-primary">Appeal Letter PDF Preview</h4>
-                <div className="border rounded bg-white p-2">
-                  <Document
-                    file={{ data: pdfData }}
-                    onLoadSuccess={onDocumentLoadSuccess}
-                    className="flex justify-center"
-                  >
-                    <Page
-                      pageNumber={pageNumber}
-                      width={Math.min(window.innerWidth * 0.8, 600)}
-                      renderTextLayer={false}
-                      renderAnnotationLayer={false}
-                    />
-                  </Document>
-                  {numPages && numPages > 1 && (
-                    <div className="flex justify-center gap-2 mt-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setPageNumber(prev => Math.max(prev - 1, 1))}
-                        disabled={pageNumber <= 1}
-                      >
-                        Previous
-                      </Button>
-                      <span className="py-2">
-                        Page {pageNumber} of {numPages}
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setPageNumber(prev => Math.min(prev + 1, numPages))}
-                        disabled={pageNumber >= numPages}
-                      >
-                        Next
-                      </Button>
-                    </div>
-                  )}
+        <Button variant="outline" onClick={() => setSelectedAppeal(null)} className="mb-4">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          {t('backToAppeals')}
+        </Button>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Appeal Details */}
+          <Card className="lg:col-span-2 border-primary/10 bg-card/80 backdrop-blur-lg shadow-xl">
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-primary">{t('appealDetails')}</CardTitle>
+                  <CardDescription className="text-primary">{t('reviewDetailsAndTakeAction')}</CardDescription>
+                </div>
+                <div className="flex space-x-2">
+                  {getAIVerdictBadge(selectedAppeal.aiVerdict)}
+                  {getStatusBadge(selectedAppeal.status)}
                 </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Violation Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DetailItem
+                  icon={Ticket}
+                  label={t('ticketNumber')}
+                  value={selectedAppeal.ticketNumber}
+                />
+                <DetailItem
+                  icon={Car}
+                  label={t('plateNumber')}
+                  value={selectedAppeal.plateNumber}
+                />
+                <DetailItem
+                  icon={MapPin}
+                  label={t('location')}
+                  value={selectedAppeal.location}
+                />
+                <DetailItem
+                  icon={Calendar}
+                  label={t('dateSubmitted')}
+                  value={selectedAppeal.submittedDate ? new Date(selectedAppeal.submittedDate.seconds * 1000).toLocaleString('en-PH') : 'N/A'}
+                />
+                <DetailItem
+                  icon={User}
+                  label={t('userName')}
+                  value={selectedAppeal.userName}
+                />
+                <DetailItem
+                  icon={Info}
+                  label={t('violationType')}
+                  value={selectedAppeal.violationType}
+                />
+              </div>
+
+              {/* Appeal Reason */}
+              <div className="bg-primary/5 p-4 rounded-lg">
+                <h3 className="font-semibold text-primary mb-2">{t('appealReason')}</h3>
+                <p className="text-sm text-primary/80 whitespace-pre-wrap">{selectedAppeal.appealReason}</p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  onClick={() => handleStatusChange(selectedAppeal.id, 'approved')} 
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  {t('approve')}
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="destructive" 
+                  onClick={() => handleStatusChange(selectedAppeal.id, 'denied')}
+                >
+                  <AlertCircle className="h-4 w-4 mr-2" />
+                  {t('deny')}
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleStatusChange(selectedAppeal.id, 'under_review')}
+                >
+                  <Info className="h-4 w-4 mr-2" />
+                  {t('underReview')}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* AI Analysis Card */}
+          <Card className="border-primary/10 bg-card/80 backdrop-blur-lg shadow-xl">
+            <CardHeader>
+              <CardTitle className="text-primary flex items-center">
+                <Shield className="h-5 w-5 mr-2" />
+                AI Analysis
+              </CardTitle>
+              <CardDescription>AI-powered violation analysis results</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Confidence Score */}
+              <div className="bg-primary/5 p-4 rounded-lg">
+                <h3 className="font-semibold text-primary mb-2">Confidence Score</h3>
+                <div className="w-full bg-primary/10 rounded-full h-2.5">
+                  <div 
+                    className="bg-primary h-2.5 rounded-full" 
+                    style={{ width: `${confidence}%` }}
+                  ></div>
+                </div>
+                <p className="text-sm text-primary/80 mt-1">{confidence}% confidence in analysis</p>
+              </div>
+
+              {/* Image Quality */}
+              <div className="bg-primary/5 p-4 rounded-lg">
+                <h3 className="font-semibold text-primary mb-2">Image Quality</h3>
+                <p className="text-sm text-primary/80">{imageQuality}</p>
+              </div>
+
+              {/* Plate Number Verification */}
+              <div className="bg-primary/5 p-4 rounded-lg">
+                <h3 className="font-semibold text-primary mb-2">Plate Number Verification</h3>
+                <p className="text-sm text-primary/80">
+                  {plateNumberMatch ? '✅ Verified' : '❌ Unverified'}
+                </p>
+              </div>
+
+              {/* Identified Issues */}
+              {issues.length > 0 && (
+                <div className="bg-primary/5 p-4 rounded-lg">
+                  <h3 className="font-semibold text-primary mb-2">Identified Issues</h3>
+                  <ul className="space-y-2">
+                    {issues.map((issue: string, index: number) => (
+                      <li key={index} className="text-sm text-primary/80 flex items-start">
+                        <AlertCircle className="h-4 w-4 mr-2 mt-0.5 text-primary/60" />
+                        {issue}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -239,15 +293,15 @@ export const AdminDashboard = () => {
     <div className="space-y-6 min-h-screen bg-background p-4">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-primary">Admin Dashboard</h1>
-        <p className="text-primary/80 mt-2">Manage appeals and violations</p>
+        <h1 className="text-3xl font-bold text-primary">{t('adminDashboard')}</h1>
+        <p className="text-primary/80 mt-2">{t('manageAppealsAndViolations')}</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Appeals</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('totalAppeals')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalAppeals}</div>
@@ -255,7 +309,7 @@ export const AdminDashboard = () => {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('pending')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
@@ -263,7 +317,7 @@ export const AdminDashboard = () => {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Approved</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('approved')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
@@ -271,7 +325,7 @@ export const AdminDashboard = () => {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Denied</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('denied')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{stats.denied}</div>
@@ -284,14 +338,14 @@ export const AdminDashboard = () => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Filter className="h-5 w-5" />
-            <span>Filter Appeals</span>
+            <span>{t('filterAppeals')}</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex space-x-4">
             <div className="flex-1">
               <Input
-                placeholder="Search by ticket number, name, or plate..."
+                placeholder={t('searchByTicketNameOrPlate')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
@@ -299,13 +353,13 @@ export const AdminDashboard = () => {
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={t('status')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="denied">Denied</SelectItem>
+                <SelectItem value="all">{t('allStatus')}</SelectItem>
+                <SelectItem value="pending">{t('pending')}</SelectItem>
+                <SelectItem value="approved">{t('approved')}</SelectItem>
+                <SelectItem value="denied">{t('denied')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -315,9 +369,9 @@ export const AdminDashboard = () => {
       {/* Appeals List */}
       <Card>
         <CardHeader>
-          <CardTitle>Appeals Management</CardTitle>
+          <CardTitle>{t('appealsManagement')}</CardTitle>
           <CardDescription>
-            Review and process violation appeals
+            {t('reviewAndProcessViolationAppeals')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -331,7 +385,7 @@ export const AdminDashboard = () => {
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="font-semibold text-lg">{appeal.violationType}</h3>
-                    <p className="text-sm text-gray-600">Ticket: {appeal.ticketNumber}</p>
+                    <p className="text-sm text-gray-600">{t('ticket')}: {appeal.ticketNumber}</p>
                   </div>
                   <div className="flex space-x-2">
                     {getAIVerdictBadge(appeal.aiVerdict)}
@@ -347,7 +401,7 @@ export const AdminDashboard = () => {
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded mb-3">
-                  <p className="text-sm"><strong>Appeal Reason:</strong> {appeal.appealReason}</p>
+                  <p className="text-sm"><strong>{t('appealReason')}:</strong> {appeal.appealReason}</p>
                 </div>
               </div>
             ))}

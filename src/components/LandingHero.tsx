@@ -6,6 +6,7 @@ import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 import { Camera } from "lucide-react";
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface LandingHeroProps {
   onSearchClick: () => void;
@@ -88,6 +89,7 @@ const topViolations = [
 ];
 
 export const LandingHero = ({ onSearchClick, onUploadClick }: LandingHeroProps) => {
+  const { t } = useLanguage();
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   });
@@ -147,7 +149,7 @@ export const LandingHero = ({ onSearchClick, onUploadClick }: LandingHeroProps) 
             {/* Replace BantAI text with logo */}
             <img src="/images/bantai.png" alt="BantAI Logo" className="mx-auto h-36 w-auto mb-6" />
             <p className="text-xl text-primary mb-10 leading-relaxed max-w-2xl mx-auto">
-              Your smart NCAP violation checker and traffic assistant. Check violations, upload tickets for AI analysis, and generate professional appeals. Fast, accurate, and easy to use.
+              {t('heroDescription')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button 
@@ -156,7 +158,7 @@ export const LandingHero = ({ onSearchClick, onUploadClick }: LandingHeroProps) 
                 className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all"
               >
                 <Search className="h-5 w-5 mr-2" />
-                Search Plate Number
+                {t('searchPlateNumber')}
               </Button>
               <Button 
                 onClick={onUploadClick} 
@@ -165,7 +167,7 @@ export const LandingHero = ({ onSearchClick, onUploadClick }: LandingHeroProps) 
                 className="border-primary text-primary hover:bg-primary/10 px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all"
               >
                 <Upload className="h-5 w-5 mr-2" />
-                Upload Ticket to Appeal
+                {t('uploadTicketToAppeal')}
               </Button>
             </div>
           </div>

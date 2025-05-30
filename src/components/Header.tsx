@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Shield, Menu, User, LogOut, Settings, Home, Upload, Search, Car } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface HeaderProps {
   currentView: string;
@@ -13,21 +14,22 @@ interface HeaderProps {
 
 export const Header = ({ currentView, setCurrentView, setAuthView, user, isAdmin, onLogout }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { language, toggleLanguage, t } = useLanguage();
 
   const navItems = user ? (
     isAdmin ? [
-      { id: 'admin', label: 'Admin Panel', icon: Settings }
+      { id: 'admin', label: t('home'), icon: Settings }
     ] : [
-      { id: 'dashboard', label: 'Dashboard', icon: Home },
-      { id: 'upload', label: 'Upload Ticket', icon: Upload },
-      { id: 'vehicles', label: 'My Vehicles', icon: Car },
-      { id: 'seed', label: 'Seed Data', icon: Upload }, // TEMP: Seed Data
+      { id: 'dashboard', label: t('home'), icon: Home },
+      { id: 'upload', label: t('uploadTicket'), icon: Upload },
+      { id: 'vehicles', label: t('searchPlateNumber'), icon: Car },
+      { id: 'seed', label: t('seedData'), icon: Upload },
     ]
   ) : [
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'search', label: 'Search Violations', icon: Search },
-    { id: 'upload', label: 'Upload Ticket', icon: Upload },
-    { id: 'seed', label: 'Seed Data', icon: Upload }, // TEMP: Seed Data
+    { id: 'home', label: t('home'), icon: Home },
+    { id: 'search', label: t('searchViolations'), icon: Search },
+    { id: 'upload', label: t('uploadTicket'), icon: Upload },
+    { id: 'seed', label: t('seedData'), icon: Upload },
   ];
 
   const handleLoginClick = () => {
@@ -76,6 +78,14 @@ export const Header = ({ currentView, setCurrentView, setAuthView, user, isAdmin
 
           {/* User Menu */}
           <div className="flex items-center space-x-3">
+            {/* EN | TL Toggle Button */}
+            <Button
+              variant="outline"
+              onClick={toggleLanguage}
+              className="border-[#0d3b86]/20 text-[#0d3b86] hover:bg-[#fcf9f6] hover:text-[#0d3b86] font-bold"
+            >
+              {language === 'en' ? 'EN' : 'TL'}
+            </Button>
             {user ? (
               <div className="flex items-center space-x-3">
                 <div className="hidden md:block text-right">
@@ -91,7 +101,7 @@ export const Header = ({ currentView, setCurrentView, setAuthView, user, isAdmin
                   className="border-[#0d3b86]/20 text-[#b61c24] hover:bg-[#fcf9f6] hover:text-[#b61c24]"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
-                  Logout
+                  {t('logout')}
                 </Button>
               </div>
             ) : (
@@ -101,13 +111,13 @@ export const Header = ({ currentView, setCurrentView, setAuthView, user, isAdmin
                   onClick={handleLoginClick}
                   className="border-[#0d3b86]/20 text-[#0d3b86] hover:bg-[#fcf9f6] hover:text-[#0d3b86]"
                 >
-                  Login
+                  {t('login')}
                 </Button>
                 <Button
                   onClick={handleSignupClick}
                   className="bg-[#0d3b86] text-white hover:bg-[#1a4e9b]"
                 >
-                  Sign Up
+                  {t('signUp')}
                 </Button>
               </div>
             )}

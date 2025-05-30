@@ -11,6 +11,7 @@ import { ViolationDetails } from './ViolationDetails';
 import { motion } from 'framer-motion';
 import { db } from '@/firebase';
 import { collection, query, where, onSnapshot, orderBy, getDocs } from 'firebase/firestore';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const getStatusBadge = (status: string) => {
   const statusConfig = {
@@ -45,6 +46,8 @@ export const Dashboard = ({ onUploadClick, onViolationSelect, user }: DashboardP
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'details'
   const [violations, setViolations] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  const { t } = useLanguage();
   
   // Normalization helper
   const normalizePlate = (plate: string) => plate.trim().toUpperCase().replace(/\s+/g, '');
@@ -165,10 +168,10 @@ export const Dashboard = ({ onUploadClick, onViolationSelect, user }: DashboardP
               </div>
               <div>
                 <h1 className="text-3xl font-bold mb-2">
-                  Welcome back, {user?.name || 'User'}
+                  {t('welcomeBack')} {user?.name || 'User'}
                 </h1>
                 <p className="text-primary-foreground text-lg">
-                  Manage your traffic violations and appeals
+                  {t('manageTrafficViolationsAndAppeals')}
                 </p>
               </div>
             </div>
@@ -179,7 +182,7 @@ export const Dashboard = ({ onUploadClick, onViolationSelect, user }: DashboardP
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
             <Upload className="h-5 w-5 mr-2" />
-            Upload Ticket
+            {t('uploadTicket')}
           </Button>
         </div>
       </motion.div>
@@ -195,7 +198,7 @@ export const Dashboard = ({ onUploadClick, onViolationSelect, user }: DashboardP
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-destructive mb-1">Outstanding Fines</p>
+                  <p className="text-sm font-medium text-destructive mb-1">{t('outstandingFines')}</p>
                   <p className="text-2xl font-bold text-destructive">₱{totalFines.toLocaleString()}</p>
                 </div>
                 <div className="bg-destructive/10 p-3 rounded-xl">
@@ -215,7 +218,7 @@ export const Dashboard = ({ onUploadClick, onViolationSelect, user }: DashboardP
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-primary mb-1">Total Violations</p>
+                  <p className="text-sm font-medium text-primary mb-1">{t('totalViolations')}</p>
                   <p className="text-2xl font-bold text-primary">{stats.total}</p>
                 </div>
                 <div className="bg-primary/10 p-3 rounded-xl">
@@ -235,7 +238,7 @@ export const Dashboard = ({ onUploadClick, onViolationSelect, user }: DashboardP
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-primary mb-1">Under Review</p>
+                  <p className="text-sm font-medium text-primary mb-1">{t('underReview')}</p>
                   <p className="text-2xl font-bold text-primary">{stats.underReview}</p>
                 </div>
                 <div className="bg-primary/10 p-3 rounded-xl">
@@ -255,7 +258,7 @@ export const Dashboard = ({ onUploadClick, onViolationSelect, user }: DashboardP
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-primary mb-1">Dismissed</p>
+                  <p className="text-sm font-medium text-primary mb-1">{t('dismissed')}</p>
                   <p className="text-2xl font-bold text-primary">{stats.dismissed}</p>
                 </div>
                 <div className="bg-primary/10 p-3 rounded-xl">
@@ -271,20 +274,20 @@ export const Dashboard = ({ onUploadClick, onViolationSelect, user }: DashboardP
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         {/* Navigation Bar */}
         <TabsList className="w-full rounded-xl bg-primary border border-primary shadow-sm flex justify-between mb-4">
-          <TabsTrigger value="violations" className="flex-1 data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground">Traffic Violations</TabsTrigger>
-          <TabsTrigger value="vehicles" className="flex-1 data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground">My Vehicles</TabsTrigger>
-          <TabsTrigger value="map" className="flex-1 data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground">Violation Map</TabsTrigger>
-          <TabsTrigger value="analytics" className="flex-1 data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground">Analytics</TabsTrigger>
+          <TabsTrigger value="violations" className="flex-1 data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground">{t('trafficViolations')}</TabsTrigger>
+          <TabsTrigger value="vehicles" className="flex-1 data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground">{t('myVehicles')}</TabsTrigger>
+          <TabsTrigger value="map" className="flex-1 data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground">{t('violationMap')}</TabsTrigger>
+          <TabsTrigger value="analytics" className="flex-1 data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground">{t('analytics')}</TabsTrigger>
         </TabsList>
         {/* Filter Controls (only for violations tab) */}
         {activeTab === 'violations' && (
           <div className="flex flex-wrap gap-4 mb-4">
             {normalizedPlateNumbers.length > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-destructive font-medium">Vehicle:</span>
+                <span className="text-sm text-destructive font-medium">{t('vehicle')}:</span>
                 <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
                   <SelectTrigger className="w-44 border-primary focus:border-destructive">
-                    <SelectValue placeholder="Filter by vehicle" />
+                    <SelectValue placeholder={t('filterByVehicle')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Vehicles</SelectItem>
@@ -298,10 +301,10 @@ export const Dashboard = ({ onUploadClick, onViolationSelect, user }: DashboardP
               </div>
             )}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-destructive font-medium">Status:</span>
+              <span className="text-sm text-destructive font-medium">{t('status')}:</span>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="w-44 border-primary focus:border-destructive">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder={t('filterByStatus')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
@@ -322,8 +325,8 @@ export const Dashboard = ({ onUploadClick, onViolationSelect, user }: DashboardP
           ) : filteredViolations.length === 0 ? (
             <div className="text-center py-12">
               <AlertCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-slate-900 mb-2">No violations found</h3>
-              <p className="text-slate-600 mb-4">Add a vehicle to start tracking violations.</p>
+              <h3 className="text-lg font-medium text-slate-900 mb-2">{t('noViolationsFound')}</h3>
+              <p className="text-slate-600 mb-4">{t('addAVehicleToStartTrackingViolations')}</p>
             </div>
           ) : (
             filteredViolations.map((violation) => (
@@ -351,7 +354,7 @@ export const Dashboard = ({ onUploadClick, onViolationSelect, user }: DashboardP
                     </div>
                   </div>
                   <div className="flex justify-end mt-2">
-                    <span className="text-xs text-destructive font-medium group-hover:underline group-hover:text-destructive/80 transition">View more</span>
+                    <span className="text-xs text-destructive font-medium group-hover:underline group-hover:text-destructive/80 transition">{t('viewMore')}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -362,9 +365,9 @@ export const Dashboard = ({ onUploadClick, onViolationSelect, user }: DashboardP
         <TabsContent value="vehicles">
           <Card className="border-destructive">
             <CardHeader>
-              <CardTitle className="text-destructive">My Vehicles</CardTitle>
+              <CardTitle className="text-destructive">{t('myVehicles')}</CardTitle>
               <CardDescription className="text-destructive">
-                Manage your registered vehicles and their violations
+                {t('manageYourRegisteredVehiclesAndTheirViolations')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -375,9 +378,9 @@ export const Dashboard = ({ onUploadClick, onViolationSelect, user }: DashboardP
               ) : normalizedPlateNumbers.length === 0 ? (
                 <div className="text-center py-12">
                   <Car className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-slate-900 mb-2">No vehicles to be checked</h3>
-                  <p className="text-slate-600 mb-4">Add a vehicle to start tracking violations.</p>
-                  <Button>Add Vehicle</Button>
+                  <h3 className="text-lg font-medium text-slate-900 mb-2">{t('noVehiclesToBeChecked')}</h3>
+                  <p className="text-slate-600 mb-4">{t('addAVehicleToStartTrackingViolations')}</p>
+                  <Button>{t('addVehicle')}</Button>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -404,7 +407,7 @@ export const Dashboard = ({ onUploadClick, onViolationSelect, user }: DashboardP
                               size="sm"
                               onClick={() => setSelectedVehicle(plate)}
                             >
-                              View Violations
+                              {t('viewViolations')}
                             </Button>
                           </div>
                         </CardContent>
@@ -420,9 +423,9 @@ export const Dashboard = ({ onUploadClick, onViolationSelect, user }: DashboardP
         <TabsContent value="map">
           <Card className="border-destructive">
             <CardHeader>
-              <CardTitle className="text-destructive">Violation Map</CardTitle>
+              <CardTitle className="text-destructive">{t('violationMap')}</CardTitle>
               <CardDescription className="text-destructive">
-                View your violations on the map
+                {t('viewYourViolationsOnTheMap')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -441,9 +444,9 @@ export const Dashboard = ({ onUploadClick, onViolationSelect, user }: DashboardP
         <TabsContent value="analytics">
           <Card className="border-destructive">
             <CardHeader>
-              <CardTitle className="text-destructive">Analytics</CardTitle>
+              <CardTitle className="text-destructive">{t('analytics')}</CardTitle>
               <CardDescription className="text-destructive">
-                View your violation statistics and trends
+                {t('viewYourViolationStatisticsAndTrends')}
               </CardDescription>
             </CardHeader>
             <CardContent>

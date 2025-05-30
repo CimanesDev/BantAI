@@ -5,12 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Brain, Eye, Scale, FileText, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
 import { motion } from 'framer-motion';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const AIAnalysis = ({ violation, onAnalysisComplete, onBack }) => {
   const [analysisStep, setAnalysisStep] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [result, setResult] = useState(null);
+  const { t } = useLanguage();
 
   const analysisSteps = [
     { icon: Eye, title: "Scanning Image", description: "Ginagamit ang Gemini Vision AI para basahin ang ticket" },

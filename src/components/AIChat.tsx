@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Bot, User, Loader2, X, MessageSquare, Menu } from "lucide-react";
 import { generateChatResponse } from '@/api/chat';
-import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 
 // Utility to strip markdown (bold, italics, etc.)
@@ -107,7 +106,16 @@ export const AIChat = () => {
   };
 
   return createPortal(
-    <div style={{ position: 'fixed', bottom: 0, right: 0, zIndex: 9999, pointerEvents: 'none' }}>
+    <div
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        right: 0,
+        zIndex: 2147483647,
+        pointerEvents: 'none'
+      }}
+      data-chatbot-portal
+    >
       {/* Always visible chatbot button, hidden when chat is open */}
       {!isOpen && (
         <div style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', pointerEvents: 'auto' }}>
@@ -122,11 +130,7 @@ export const AIChat = () => {
       {/* Chat modal, fixed size, always bottom right, only visible when open */}
       {isOpen && (
         <div style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', width: '400px', height: '600px', maxWidth: '100%', pointerEvents: 'auto' }}>
-          <motion.div
-            initial={{ opacity: 0, y: 60 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 60 }}
-            transition={{ duration: 0.35, type: 'spring' }}
+          <div
             className="w-full h-full bg-card/80 backdrop-blur-lg border border-primary/10 rounded-3xl shadow-2xl flex flex-col"
             style={{ minWidth: 320 }}
           >
@@ -150,63 +154,52 @@ export const AIChat = () => {
               </div>
               {/* Messages */}
               <ScrollArea ref={scrollRef} className="flex-1 px-4 py-6 space-y-4">
-                <AnimatePresence>
-                  {messages.map((message, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.22 }}
-                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
-                    >
-                      <div className={`flex items-end max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                        {/* Avatar */}
-                        <div className={`flex-shrink-0 ${message.role === 'user' ? 'ml-2' : 'mr-2'}`}>
-                          {message.role === 'user' ? (
-                            <div className="bg-[#0d3b86] text-white rounded-full p-2 flex items-center justify-center shadow-md">
-                              <User className="h-5 w-5" />
-                            </div>
-                          ) : (
-                            <div className="bg-[#fcf9f6] text-[#0d3b86] rounded-full p-2 flex items-center justify-center shadow-md">
-                              <Bot className="h-5 w-5" />
-                            </div>
-                          )}
-                        </div>
-                        {/* Bubble */}
-                        <div
-                          className={`rounded-2xl px-5 py-4 shadow-lg/10 ${
-                            message.role === 'user'
-                              ? 'bg-gradient-to-r from-[#0d3b86] to-[#0d3b86] text-white shadow-lg'
-                              : 'bg-[#fcf9f6] text-[#0d3b86] border border-[#0d3b86]/20 shadow'
-                          }`}
-                          style={{ minWidth: 60, marginBottom: 2, marginTop: 2 }}
-                        >
-                          <span className="text-sm whitespace-pre-line leading-relaxed">
-                            {message.role === 'assistant' ? stripMarkdown(message.content) : stripMarkdown(message.content)}
-                          </span>
-                        </div>
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
+                  >
+                    <div className={`flex items-end max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                      {/* Avatar */}
+                      <div className={`flex-shrink-0 ${message.role === 'user' ? 'ml-2' : 'mr-2'}`}>
+                        {message.role === 'user' ? (
+                          <div className="bg-[#0d3b86] text-white rounded-full p-2 flex items-center justify-center shadow-md">
+                            <User className="h-5 w-5" />
+                          </div>
+                        ) : (
+                          <div className="bg-[#fcf9f6] text-[#0d3b86] rounded-full p-2 flex items-center justify-center shadow-md">
+                            <Bot className="h-5 w-5" />
+                          </div>
+                        )}
                       </div>
-                    </motion.div>
-                  ))}
-                  {isLoading && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex justify-start"
-                    >
-                      <div className="flex items-end max-w-[80%]">
-                        <div className="bg-[#fcf9f6] text-[#0d3b86] rounded-full p-2 flex items-center justify-center mr-2 shadow-md">
-                          <Bot className="h-5 w-5" />
-                        </div>
-                        <div className="bg-[#fcf9f6] text-[#0d3b86] border border-[#0d3b86]/20 rounded-2xl px-5 py-4 shadow flex items-center space-x-2">
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                          <span className="text-[#0d3b86]">AI is thinking...</span>
-                        </div>
+                      {/* Bubble */}
+                      <div
+                        className={`rounded-2xl px-5 py-4 shadow-lg/10 ${
+                          message.role === 'user'
+                            ? 'bg-gradient-to-r from-[#0d3b86] to-[#0d3b86] text-white shadow-lg'
+                            : 'bg-[#fcf9f6] text-[#0d3b86] border border-[#0d3b86]/20 shadow'
+                        }`}
+                        style={{ minWidth: 60, marginBottom: 2, marginTop: 2 }}
+                      >
+                        <span className="text-sm whitespace-pre-line leading-relaxed">
+                          {message.role === 'assistant' ? stripMarkdown(message.content) : stripMarkdown(message.content)}
+                        </span>
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    </div>
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="flex items-end max-w-[80%]">
+                      <div className="bg-[#fcf9f6] text-[#0d3b86] rounded-full p-2 flex items-center justify-center mr-2 shadow-md">
+                        <Bot className="h-5 w-5" />
+                      </div>
+                      <div className="rounded-2xl px-5 py-4 bg-[#fcf9f6] text-[#0d3b86] border border-[#0d3b86]/20 shadow shadow-lg/10" style={{ minWidth: 60, marginBottom: 2, marginTop: 2 }}>
+                        <Loader2 className="animate-spin h-5 w-5" />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </ScrollArea>
               {/* Quick Questions (toggle with hamburger) */}
               {showQuickReplies && (
@@ -248,7 +241,7 @@ export const AIChat = () => {
                 </Button>
               </form>
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
     </div>,

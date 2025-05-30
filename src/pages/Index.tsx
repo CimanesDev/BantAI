@@ -14,6 +14,7 @@ import { LandingHero } from '../components/LandingHero';
 import { SeedMockViolations } from '../components/SeedMockViolations';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState('home');
@@ -23,6 +24,7 @@ const Index = () => {
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isUserDataLoading, setIsUserDataLoading] = useState(false);
+  const { t } = useLanguage();
 
   const handleLogin = async (userData: any) => {
     setIsUserDataLoading(true);

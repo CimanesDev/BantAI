@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { useToast } from "@/hooks/use-toast";
 import { db } from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const mockSearchResults = [
   {
@@ -68,6 +69,7 @@ export const PlateSearch = ({ onBack }: PlateSearchProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,7 +132,7 @@ export const PlateSearch = ({ onBack }: PlateSearchProps) => {
             Back
           </Button>
         )}
-        <h2 className="text-2xl font-bold text-primary">Search Plate Number</h2>
+        <h2 className="text-2xl font-bold text-primary">{t('searchPlateNumber')}</h2>
       </motion.div>
 
       <motion.div
@@ -161,12 +163,12 @@ export const PlateSearch = ({ onBack }: PlateSearchProps) => {
               {isLoading ? (
                 <>
                   <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                  Searching...
+                  {t('searching')}...
                 </>
               ) : (
                 <>
                   <Search className="h-5 w-5 mr-2" />
-                  Search
+                  {t('search')}
                 </>
               )}
             </Button>
@@ -204,7 +206,7 @@ export const PlateSearch = ({ onBack }: PlateSearchProps) => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-primary mb-1">Total Violations</p>
+                    <p className="text-sm font-medium text-primary mb-1">{t('totalViolations')}</p>
                     <p className="text-2xl font-bold text-primary">{searchResults.violations.length}</p>
                   </div>
                   <div className="bg-primary/10 p-3 rounded-xl">
@@ -217,7 +219,7 @@ export const PlateSearch = ({ onBack }: PlateSearchProps) => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-destructive mb-1">Outstanding Fines</p>
+                    <p className="text-sm font-medium text-destructive mb-1">{t('outstandingFines')}</p>
                     <p className="text-2xl font-bold text-destructive">₱{totalUnpaid.toLocaleString()}</p>
                   </div>
                   <div className="bg-destructive/10 p-3 rounded-xl">
@@ -230,7 +232,7 @@ export const PlateSearch = ({ onBack }: PlateSearchProps) => {
 
           {/* Violations List */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-primary">Violation History</h3>
+            <h3 className="text-lg font-semibold text-primary">{t('violationHistory')}</h3>
             {searchResults.violations.map((violation: any, index: number) => (
               <Card key={index} className="border-primary/10 bg-card/80 backdrop-blur-lg hover:border-primary/20 transition-colors">
                 <CardContent className="p-6">
@@ -240,7 +242,7 @@ export const PlateSearch = ({ onBack }: PlateSearchProps) => {
                         <h3 className="text-lg font-bold text-primary">{violation.violationType}</h3>
                         {getStatusBadge(violation.status)}
                       </div>
-                      <p className="text-primary/80">Ticket: {violation.ticketNumber}</p>
+                      <p className="text-primary/80">{t('ticket')}: {violation.ticketNumber}</p>
                       <div className="flex items-center text-sm text-primary/80">
                         <FileText className="h-4 w-4 mr-1" />
                         {violation.location}

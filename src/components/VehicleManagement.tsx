@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import { db } from '@/firebase';
 import { doc, collection, addDoc, updateDoc, deleteDoc, getDocs, query, where } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Vehicle {
   id: string;
@@ -40,6 +41,7 @@ export const VehicleManagement = ({ user, onVehiclesUpdate }: VehicleManagementP
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (user) {
@@ -190,7 +192,7 @@ export const VehicleManagement = ({ user, onVehiclesUpdate }: VehicleManagementP
         transition={{ duration: 0.5 }}
         className="flex items-center space-x-4"
       >
-        <h2 className="text-2xl font-bold text-primary">Vehicle Management</h2>
+        <h2 className="text-2xl font-bold text-primary">{t('vehicleManagement.title')}</h2>
       </motion.div>
       <div
         className="bg-card/80 backdrop-blur-lg border border-primary/10 rounded-2xl shadow-lg p-6"
@@ -198,27 +200,27 @@ export const VehicleManagement = ({ user, onVehiclesUpdate }: VehicleManagementP
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold text-blue-900">My Vehicles</h2>
-              <p className="text-blue-600">Manage your registered vehicles</p>
+              <h2 className="text-2xl font-bold text-blue-900">{t('vehicleManagement.myVehicles')}</h2>
+              <p className="text-blue-600">{t('vehicleManagement.manageRegisteredVehicles')}</p>
             </div>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-blue-600 hover:bg-blue-700">
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Vehicle
+                  {t('vehicleManagement.addVehicle')}
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                  <DialogTitle className="text-blue-900">Add New Vehicle</DialogTitle>
+                  <DialogTitle className="text-blue-900">{t('vehicleManagement.addNewVehicle')}</DialogTitle>
                   <DialogDescription className="text-blue-600">
-                    Enter your vehicle details below
+                    {t('vehicleManagement.enterVehicleDetailsBelow')}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="plateNumber" className="text-right text-blue-900">
-                      Plate Number
+                      {t('vehicleManagement.plateNumber')}
                     </Label>
                     <Input
                       id="plateNumber"
@@ -230,27 +232,27 @@ export const VehicleManagement = ({ user, onVehiclesUpdate }: VehicleManagementP
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="type" className="text-right text-blue-900">
-                      Type
+                      {t('vehicleManagement.type')}
                     </Label>
                     <Select
                       value={newVehicle.type}
                       onValueChange={(value) => setNewVehicle(prev => ({ ...prev, type: value }))}
                     >
                       <SelectTrigger className="col-span-3 border-blue-200 focus:border-blue-400">
-                        <SelectValue placeholder="Select vehicle type" />
+                        <SelectValue placeholder={t('vehicleManagement.selectVehicleType')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Sedan">Sedan</SelectItem>
-                        <SelectItem value="SUV">SUV</SelectItem>
-                        <SelectItem value="Truck">Truck</SelectItem>
-                        <SelectItem value="Van">Van</SelectItem>
-                        <SelectItem value="Motorcycle">Motorcycle</SelectItem>
+                        <SelectItem value="Sedan">{t('vehicleManagement.sedan')}</SelectItem>
+                        <SelectItem value="SUV">{t('vehicleManagement.suv')}</SelectItem>
+                        <SelectItem value="Truck">{t('vehicleManagement.truck')}</SelectItem>
+                        <SelectItem value="Van">{t('vehicleManagement.van')}</SelectItem>
+                        <SelectItem value="Motorcycle">{t('vehicleManagement.motorcycle')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="brand" className="text-right text-blue-900">
-                      Brand
+                      {t('vehicleManagement.brand')}
                     </Label>
                     <Input
                       id="brand"
@@ -262,7 +264,7 @@ export const VehicleManagement = ({ user, onVehiclesUpdate }: VehicleManagementP
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="model" className="text-right text-blue-900">
-                      Model
+                      {t('vehicleManagement.model')}
                     </Label>
                     <Input
                       id="model"
@@ -274,7 +276,7 @@ export const VehicleManagement = ({ user, onVehiclesUpdate }: VehicleManagementP
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="year" className="text-right text-blue-900">
-                      Year
+                      {t('vehicleManagement.year')}
                     </Label>
                     <Input
                       id="year"
@@ -291,7 +293,7 @@ export const VehicleManagement = ({ user, onVehiclesUpdate }: VehicleManagementP
                     onClick={handleAddVehicle}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
-                    Add Vehicle
+                    {t('vehicleManagement.addVehicle')}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -333,15 +335,15 @@ export const VehicleManagement = ({ user, onVehiclesUpdate }: VehicleManagementP
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[425px]">
                               <DialogHeader>
-                                <DialogTitle className="text-blue-900">Edit Vehicle</DialogTitle>
+                                <DialogTitle className="text-blue-900">{t('vehicleManagement.editVehicle')}</DialogTitle>
                                 <DialogDescription className="text-blue-600">
-                                  Update your vehicle details
+                                  {t('vehicleManagement.updateVehicleDetails')}
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="grid gap-4 py-4">
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="edit-plateNumber" className="text-right text-blue-900">
-                                    Plate Number
+                                    {t('vehicleManagement.plateNumber')}
                                   </Label>
                                   <Input
                                     id="edit-plateNumber"
@@ -352,27 +354,27 @@ export const VehicleManagement = ({ user, onVehiclesUpdate }: VehicleManagementP
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="edit-type" className="text-right text-blue-900">
-                                    Type
+                                    {t('vehicleManagement.type')}
                                   </Label>
                                   <Select
                                     value={selectedVehicle?.type}
                                     onValueChange={(value) => setSelectedVehicle(prev => prev ? { ...prev, type: value } : null)}
                                   >
                                     <SelectTrigger className="col-span-3 border-blue-200 focus:border-blue-400">
-                                      <SelectValue placeholder="Select vehicle type" />
+                                      <SelectValue placeholder={t('vehicleManagement.selectVehicleType')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="Sedan">Sedan</SelectItem>
-                                      <SelectItem value="SUV">SUV</SelectItem>
-                                      <SelectItem value="Truck">Truck</SelectItem>
-                                      <SelectItem value="Van">Van</SelectItem>
-                                      <SelectItem value="Motorcycle">Motorcycle</SelectItem>
+                                      <SelectItem value="Sedan">{t('vehicleManagement.sedan')}</SelectItem>
+                                      <SelectItem value="SUV">{t('vehicleManagement.suv')}</SelectItem>
+                                      <SelectItem value="Truck">{t('vehicleManagement.truck')}</SelectItem>
+                                      <SelectItem value="Van">{t('vehicleManagement.van')}</SelectItem>
+                                      <SelectItem value="Motorcycle">{t('vehicleManagement.motorcycle')}</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="edit-brand" className="text-right text-blue-900">
-                                    Brand
+                                    {t('vehicleManagement.brand')}
                                   </Label>
                                   <Input
                                     id="edit-brand"
@@ -383,7 +385,7 @@ export const VehicleManagement = ({ user, onVehiclesUpdate }: VehicleManagementP
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="edit-model" className="text-right text-blue-900">
-                                    Model
+                                    {t('vehicleManagement.model')}
                                   </Label>
                                   <Input
                                     id="edit-model"
@@ -394,7 +396,7 @@ export const VehicleManagement = ({ user, onVehiclesUpdate }: VehicleManagementP
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="edit-year" className="text-right text-blue-900">
-                                    Year
+                                    {t('vehicleManagement.year')}
                                   </Label>
                                   <Input
                                     id="edit-year"
@@ -410,7 +412,7 @@ export const VehicleManagement = ({ user, onVehiclesUpdate }: VehicleManagementP
                                   onClick={handleEditVehicle}
                                   className="bg-blue-600 hover:bg-blue-700"
                                 >
-                                  Save Changes
+                                  {t('vehicleManagement.saveChanges')}
                                 </Button>
                               </DialogFooter>
                             </DialogContent>
@@ -438,9 +440,9 @@ export const VehicleManagement = ({ user, onVehiclesUpdate }: VehicleManagementP
                     <AlertCircle className="h-12 w-12 text-blue-600" />
                   </div>
                 </div>
-                <h3 className="text-2xl font-bold text-blue-900 mb-4">No Vehicles Found</h3>
+                <h3 className="text-2xl font-bold text-blue-900 mb-4">{t('vehicleManagement.noVehiclesFound')}</h3>
                 <p className="text-blue-600 mb-6">
-                  You haven't added any vehicles yet. Click the button above to add your first vehicle.
+                  {t('vehicleManagement.noVehiclesYet')}
                 </p>
               </CardContent>
             </Card>

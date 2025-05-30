@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { db } from '@/firebase';
 import { collection, addDoc, doc, updateDoc, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
 import jsPDF from 'jspdf';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const AppealGenerator = ({ violation, analysisResult, onBack }) => {
   const [customNotes, setCustomNotes] = useState('');
@@ -17,6 +18,7 @@ export const AppealGenerator = ({ violation, analysisResult, onBack }) => {
   const { toast } = useToast();
   const [hasAppeal, setHasAppeal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const checkExistingAppeal = async () => {
@@ -91,16 +93,16 @@ ATTACHMENTS:
   const handleCopyLetter = () => {
     navigator.clipboard.writeText(appealLetter);
     toast({
-      title: "Appeal letter copied",
-      description: "The letter has been copied to your clipboard",
+      title: t('appealLetterCopied'),
+      description: t('letterCopiedToClipboard'),
     });
   };
 
   const handleSubmitAppeal = async () => {
     if (hasAppeal) {
       toast({
-        title: 'Appeal already exists',
-        description: 'This violation already has an appeal under review.',
+        title: t('appealAlreadyExists'),
+        description: t('violationAlreadyHasAppeal'),
         variant: 'destructive'
       });
       return;
@@ -131,14 +133,14 @@ ATTACHMENTS:
       });
 
       toast({
-        title: 'Appeal submitted',
-        description: 'Your appeal has been sent to the LGU for review.'
+        title: t('appealSubmitted'),
+        description: t('appealSentToLGU')
       });
       onBack();
     } catch (err) {
       toast({
-        title: 'Error submitting appeal',
-        description: 'There was an error submitting your appeal. Please try again.',
+        title: t('errorSubmittingAppeal'),
+        description: t('errorSubmittingAppealDesc'),
         variant: 'destructive'
       });
     } finally {
@@ -164,14 +166,14 @@ ATTACHMENTS:
           className="mb-4 text-primary hover:text-primary/80 hover:bg-transparent"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Violation
+          {t('backToViolation')}
         </Button>
 
         <Card className="border-destructive">
           <CardHeader>
-            <CardTitle className="text-destructive">Generate Appeal</CardTitle>
+            <CardTitle className="text-destructive">{t('generateAppeal')}</CardTitle>
             <CardDescription className="text-destructive">
-              Review the AI analysis and submit your appeal
+              {t('reviewAIAndSubmitAppeal')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -183,23 +185,23 @@ ATTACHMENTS:
             >
               <Card>
                 <CardHeader>
-                  <CardTitle>Analysis Summary</CardTitle>
+                  <CardTitle>{t('analysisSummary')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <Badge variant={analysisResult.verdict === 'unfair' ? 'destructive' : 'default'}>
-                        {analysisResult.verdict === 'unfair' ? 'Possibly Unfair' : 'Valid Violation'}
+                        {analysisResult.verdict === 'unfair' ? t('possiblyUnfair') : t('validViolation')}
                       </Badge>
                       <span className="ml-2 text-sm text-gray-600">
-                        AI Confidence: {analysisResult.confidence}%
+                        {t('aiConfidence')}: {analysisResult.confidence}%
                       </span>
                     </div>
                   </div>
                   
                   {analysisResult.issues.length > 0 && (
                     <div>
-                      <h4 className="font-semibold mb-2">Issues Found:</h4>
+                      <h4 className="font-semibold mb-2">{t('issuesFound')}:</h4>
                       <ul className="list-disc list-inside space-y-1 text-sm">
                         {analysisResult.issues.map((issue, index) => (
                           <li key={index} className="text-red-600">{issue}</li>
@@ -219,14 +221,14 @@ ATTACHMENTS:
             >
               <Card>
                 <CardHeader>
-                  <CardTitle>Additional Information</CardTitle>
+                  <CardTitle>{t('additionalInformation')}</CardTitle>
                   <CardDescription>
-                    Magdagdag ng inyong personal na explanation o context (optional)
+                    {t('addPersonalExplanation')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Textarea
-                    placeholder="Halimbawa: Ako ay nasa emergency situation noon, o may road construction na hindi nakita sa violation photo..."
+                    placeholder={t('customNotesPlaceholder')}
                     value={customNotes}
                     onChange={(e) => setCustomNotes(e.target.value)}
                     rows={4}
@@ -247,12 +249,12 @@ ATTACHMENTS:
                   {isGenerating ? (
                     <>
                       <FileText className="h-5 w-5 mr-2 animate-pulse" />
-                      Ginagawa ang Appeal Letter...
+                      {t('generatingAppealLetter')}...
                     </>
                   ) : (
                     <>
                       <FileText className="h-5 w-5 mr-2" />
-                      Generate Appeal Letter
+                      {t('generateAppealLetter')}
                     </>
                   )}
                 </Button>
@@ -268,9 +270,9 @@ ATTACHMENTS:
               >
                 <Card>
                   <CardHeader>
-                    <CardTitle>Generated Appeal Letter</CardTitle>
+                    <CardTitle>{t('generatedAppealLetter')}</CardTitle>
                     <CardDescription>
-                      AI-generated formal appeal letter na pwede ninyong i-submit sa LGU
+                      {t('aiGeneratedFormalAppeal')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -283,11 +285,11 @@ ATTACHMENTS:
                     <div className="flex flex-wrap gap-2">
                       <Button onClick={handleCopyLetter} variant="outline">
                         <Copy className="h-4 w-4 mr-2" />
-                        Copy Letter
+                        {t('copyLetter')}
                       </Button>
                       <Button variant="outline" onClick={handleDownloadPDF}>
                         <Download className="h-4 w-4 mr-2" />
-                        Download PDF
+                        {t('downloadPDF')}
                       </Button>
                       <Button
                         onClick={handleSubmitAppeal}
@@ -297,24 +299,24 @@ ATTACHMENTS:
                         {isSubmitting ? (
                           <div className="flex items-center space-x-2">
                             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                            <span>Submitting appeal...</span>
+                            <span>{t('submittingAppeal')}...</span>
                           </div>
                         ) : hasAppeal ? (
-                          'Appeal Already Submitted'
+                          t('appealAlreadySubmitted')
                         ) : (
-                          'Submit Appeal'
+                          t('submitAppeal')
                         )}
                       </Button>
                     </div>
                     
                     <div className="text-sm text-gray-600">
-                      <p><strong>Next Steps:</strong></p>
+                      <p><strong>{t('nextSteps')}:</strong></p>
                       <ul className="list-disc list-inside mt-1 space-y-1">
-                        <li>I-download ang letter as PDF</li>
-                        <li>I-print at i-sign ang letter</li>
-                        <li>I-attach ang original ticket at supporting documents</li>
-                        <li>I-submit sa proper LGU office o online portal</li>
-                        <li>Mag-antay ng response (usually 15-30 days)</li>
+                        <li>{t('downloadLetterAsPDF')}</li>
+                        <li>{t('printAndSignLetter')}</li>
+                        <li>{t('attachTicketAndDocs')}</li>
+                        <li>{t('submitToLGU')}</li>
+                        <li>{t('waitForResponse')}</li>
                       </ul>
                     </div>
                   </CardContent>
